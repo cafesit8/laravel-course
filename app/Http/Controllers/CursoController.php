@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateCurso;
 use App\Models\Curso;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -20,7 +21,7 @@ class CursoController extends Controller
   {
     // return 'En esta página podrás crear un curso';
     $validator = Validator::make($request->all(), [
-      'name' => 'required|string|max:25|unique:cursos',
+      'name' => 'required|string|min:3|max:25|unique:cursos',
       'description' => 'required|string',
       'category' => 'required|string',
     ]);
@@ -40,10 +41,14 @@ class CursoController extends Controller
       'category' => $request->category,
     ]);
 
+    
+    // $data = $request->validated();
+    
+    // $course = Curso::create($data);
+    
     if(!$course){
       $response = [
         'message' => 'Error al crear el curso',
-        'errors' => $validator->errors(),
         'status' => 400
       ];
       return response()->json($response, 400);
