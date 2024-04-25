@@ -19,12 +19,7 @@ class CursoController extends Controller
 
   function create(Request $request)
   {
-    // return 'En esta página podrás crear un curso';
-    $validator = Validator::make($request->all(), [
-      'name' => 'required|string|min:3|max:25|unique:cursos',
-      'description' => 'required|string',
-      'category' => 'required|string',
-    ]);
+    $validator = Validator::make($request->all());
 
     if($validator->fails()){
       $response = [
@@ -35,20 +30,18 @@ class CursoController extends Controller
       return response()->json($response, 400);
     }
 
-    $course = Curso::create([
-      'name' => $request->name,
-      'description' => $request->description,
-      'category' => $request->category,
-    ]);
+    // $course = Curso::create([
+    //   'name' => $request->name,
+    //   'description' => $request->description,
+    //   'category' => $request->category,
+    // ]);
 
-    
-    // $data = $request->validated();
-    
-    // $course = Curso::create($data);
+    $course = Curso::create($request->all()); // <--- Asignación masiva: De esta manera nos evitamos de volver a escribir los nombres de las columnas de la db
     
     if(!$course){
       $response = [
         'message' => 'Error al crear el curso',
+        'error' => $course->errors(),
         'status' => 400
       ];
       return response()->json($response, 400);
@@ -134,16 +127,18 @@ class CursoController extends Controller
       return response()->json($response, 400);
     }
 
-    if($request->has('name')) {
-      $course->name = $request->name;
-    };
-    if($request->has('description')) {
-      $course->description = $request->description;
-    }
-    if($request->has('category')) {
-      $course->category = $request->category;
-    }
-    $course->save();
+    // if($request->has('name')) {
+    //   $course->name = $request->name;
+    // };
+    // if($request->has('description')) {
+    //   $course->description = $request->description;
+    // }
+    // if($request->has('category')) {
+    //   $course->category = $request->category;
+    // }
+    // $course->save();
+
+    $course->update($request->all());  // <-- Usamos la asignación masiva para evitar validar si la request tiene cada campo
 
     $response = [
       'message' => 'Curso actualizado correctamente',
