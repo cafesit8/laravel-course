@@ -13,11 +13,13 @@ class Curso extends Model
 
   protected $table = 'cursos';
 
-  protected $fillable = [
-    'name',
-    'description',
-    'category'
-  ];
+  // protected $fillable = [
+  //   'name',
+  //   'description',
+  //   'category'
+  // ];
+
+  protected $guarded = []; // <--- Aquí van los campos que no queremos que se puedan llegar a la tabla, porque en el fillable podemos tener 30 columnas, no escribiremos 30 palabras de cada columna, para eso solo agregamos este guarded para validar lo campos que no van a la tabla de la base de datos
 
   protected function name(): Attribute {
     return new Attribute(
