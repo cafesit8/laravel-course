@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateCurso;
+use App\Mail\ContactoMail;
 use App\Models\Curso;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class CursoController extends Controller
@@ -19,47 +21,31 @@ class CursoController extends Controller
 
   function create(Request $request)
   {
-    $validator = Validator::make($request->all());
+    try {
+      $validator = Validator::make($request->all(), [
+        'name' => 'required|string|max:25|unique:cursos',
+        'description' => 'required|string',
+        'category' => 'required|string',
+      ]);
 
-    if($validator->fails()){
-      $response = [
-        'message' => 'Error en los datos',
-        'errors' => $validator->errors(),
-        'status' => 400
-      ];
-      return response()->json($response, 400);
+      if ($validator->fails()) return response()->json(['message' => 'Error en los datos', 'errors' => $validator->errors(), 'status' => 400], 400);
+
+      $course = Curso::create($request->all());
+
+      if (!$course) return response()->json(['message' => 'Error al crear el curso', 'errors' => $validator->errors(), 'status' => 400], 400);
+
+      Mail::to('ejemploWindows@gmail.com')->send(new ContactoMail($course));
+      return response()->json(['message' => 'Curso creado correctamente', 'course' => $course, 'status' => 200], 200);
+    } catch (\Throwable $e) {
+      return response()->json(['message' => 'Error al crear el curso', 'errors' => $e->getMessage(), 'status' => 500], 500);
     }
-
-    // $course = Curso::create([
-    //   'name' => $request->name,
-    //   'description' => $request->description,
-    //   'category' => $request->category,
-    // ]);
-
-    $course = Curso::create($request->all()); // <--- Asignación masiva: De esta manera nos evitamos de volver a escribir los nombres de las columnas de la db
-    
-    if(!$course){
-      $response = [
-        'message' => 'Error al crear el curso',
-        'error' => $course->errors(),
-        'status' => 400
-      ];
-      return response()->json($response, 400);
-    }
-
-    $response = [
-      'message' => 'Curso creado correctamente',
-      'course' => $course,
-      'status' => 200
-    ];
-
-    return response()->json($response, 200);
   }
+
 
   function show($id)
   {
     $curso = Curso::find($id);
-    if($curso == null){
+    if ($curso == null) {
       $response = [
         'message' => 'Curso no encontrado',
         'status' => 404
@@ -81,7 +67,7 @@ class CursoController extends Controller
   {
     $curso = Curso::find($id);
 
-    if($curso == null){
+    if ($curso == null) {
       $response = [
         'message' => 'Curso no encontrado',
         'status' => 404
@@ -95,16 +81,17 @@ class CursoController extends Controller
       'message' => 'Curso eliminado correctamente',
       'status' => 200
     ];
-    
+
     return response()->json($response, 200);
 
     // return "En esta página podrás eliminar un curso: $curso";
     // return view('cursos.delete', compact('curso'));
   }
 
-  function updatePartial($id, Request $request){
+  function updatePartial($id, Request $request)
+  {
     $course = Curso::find($id);
-    if($course == null){
+    if ($course == null) {
       $response = [
         'message' => 'Curso no encontrado',
         'status' => 404
@@ -118,7 +105,7 @@ class CursoController extends Controller
       'category' => 'string',
     ]);
 
-    if($validator->fails()){
+    if ($validator->fails()) {
       $response = [
         'message' => 'Error en los datos',
         'errors' => $validator->errors(),
